@@ -2,9 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Dispatcher Control Room</title>
+<title>IMS Dispatcher Control Room</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- SIP + Map Libraries -->
+<script src="https://unpkg.com/sip.js/dist/sip.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -13,56 +18,65 @@ href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 body{
 margin:0;
 font-family:Arial;
-background:#111;
+background:#0f0f0f;
 color:white;
 text-align:center;
 }
 
-#map{
-height:600px;
-}
-
-.toolbar{
+.header{
 padding:20px;
 background:#222;
 }
 
+#map{
+height:500px;
+width:100%;
+}
+
 button{
 padding:12px 25px;
-margin:10px;
 font-size:16px;
+margin:10px;
+cursor:pointer;
 }
 
 #status{
-color:#0f0;
+color:#00ff00;
 font-size:18px;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="toolbar">
+<div class="header">
+<h2>Dispatcher IMS Console</h2>
+<div id="status">Connecting to PBX...</div>
 
-<h2>Dispatcher Console</h2>
-
-<div id="status">Waiting for call...</div>
-
-<button onclick="answerCall()">
-Answer Call
-</button>
-
-<button onclick="hangupCall()">
-Hangup
-</button>
+<button onclick="answerCall()">Answer Call</button>
+<button onclick="hangupCall()">Hangup</button>
 
 </div>
 
 <div id="map"></div>
 
 <script>
+
+/********************************************
+ CONFIGURATION ⭐ CHANGE THIS
+********************************************/
+
+const extension = "1001";
+const password = "YOUR_EXTENSION_PASSWORD";
+const pbxDomain = "YOUR_PBX_DOMAIN.yeastarcloud.com";
+
+const wsServer =
+`wss://${pbxDomain}:8089/ws`;
+
+/********************************************
+ MAP INIT
+********************************************/
 
 const map = L.map("map")
 .setView([14.5995,120.9842],12);
@@ -73,19 +87,105 @@ L.tileLayer(
 
 let marker = null;
 
-////////////////////////////////////////////////////
-// POLL CALL SESSION
-////////////////////////////////////////////////////
+/********************************************
+ SIP WEBRTC REGISTRATION
+********************************************/
 
-function checkIncomingCall(){
+let session = null;
+
+const userAgent = new SIP.UserAgent({
+
+uri: SIP.UserAgent.makeURI(
+`sip:${extension}@${pbxDomain}`
+),
+
+transportOptions:{
+server: wsServer
+},
+
+authorizationUsername: extension,
+authorizationPassword: password,
+
+sessionDescriptionHandlerFactoryOptions:{
+constraints:{
+audio:true,
+video:false
+}
+}
+
+});
+
+/********************************************
+ START REGISTRATION
+********************************************/
+
+userAgent.start().then(()=>{
+
+document.getElementById("status").innerText =
+"Registered to PBX ✅";
+
+console.log("PBX Registration Success");
+
+});
+
+/********************************************
+ INCOMING CALL HANDLER
+********************************************/
+
+userAgent.delegate = {
+
+onInvite(invitation){
+
+console.log("Incoming Call");
+
+session = invitation;
+
+document.getElementById("status").innerText =
+"Incoming Call 🔔";
+
+showCallerLocation();
+
+}
+
+};
+
+/********************************************
+ CALL CONTROLS
+********************************************/
+
+function answerCall(){
+
+if(!session){
+alert("No incoming call");
+return;
+}
+
+session.accept();
+
+document.getElementById("status").innerText =
+"Call Connected 🎧";
+
+}
+
+function hangupCall(){
+
+if(session){
+session.terminate();
+}
+
+}
+
+/********************************************
+ SHOW CALLER LOCATION
+ (From Citizen App Simulation)
+********************************************/
+
+function showCallerLocation(){
 
 const call =
 JSON.parse(localStorage.getItem("activeCall"));
 
 if(!call) return;
-
-document.getElementById("status").innerText =
-"Incoming Call 🔔";
 
 if(marker){
 
@@ -93,8 +193,10 @@ marker.setLatLng([call.lat, call.lng]);
 
 }else{
 
-marker = L.marker([call.lat, call.lng])
-.addTo(map)
+marker = L.marker([
+call.lat,
+call.lng
+]).addTo(map)
 .bindPopup("Caller Location");
 
 map.setView([call.lat, call.lng],16);
@@ -103,36 +205,7 @@ map.setView([call.lat, call.lng],16);
 
 }
 
-////////////////////////////////////////////////////
-
-function answerCall(){
-
-let call =
-JSON.parse(localStorage.getItem("activeCall"));
-
-if(!call){
-alert("No incoming call");
-return;
-}
-
-call.status = "answered";
-
-localStorage.setItem(
-"activeCall",
-JSON.stringify(call)
-);
-
-alert("Call Answered 🎧");
-
-// Replace with PBX call pickup logic if needed
-
-}
-
-function hangupCall(){
-alert("Call ended");
-}
-
-setInterval(checkIncomingCall,2000);
+setInterval(showCallerLocation,2000);
 
 </script>
 
