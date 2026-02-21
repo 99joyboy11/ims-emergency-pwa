@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Emergency IMS</title>
+<title>Citizen Emergency</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 body{
     font-family: Arial;
     text-align:center;
-    background:#f0f0f0;
+    background:#f4f4f4;
     padding:40px;
 }
 
 button{
-    padding:20px;
-    font-size:20px;
     background:red;
     color:white;
     border:none;
+    padding:30px;
     border-radius:50%;
-    width:120px;
-    height:120px;
+    font-size:20px;
     cursor:pointer;
 }
 </style>
@@ -29,40 +29,34 @@ button{
 
 <body>
 
-<h1>Emergency IMS</h1>
+<h1>Emergency Call</h1>
 
-<button id="callBtn">Call</button>
+<button id="emergencyBtn">CALL</button>
 
 <script>
 
-let callerLocation = null;
+let locationData = null;
 
-// Get GPS
 navigator.geolocation.getCurrentPosition(pos=>{
-    callerLocation = {
+    locationData = {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
     };
+});
 
-    console.log("GPS:", callerLocation);
+document.getElementById("emergencyBtn").onclick = async function(){
 
-}, err=>{
-    alert("GPS permission required");
-},{enableHighAccuracy:true});
-
-
-// Emergency call
-document.getElementById("callBtn").onclick = async function(){
-
-    if(!callerLocation){
-        alert("Location not ready");
+    if(!locationData){
+        alert("Waiting for GPS...");
         return;
     }
 
-    // Save to GitHub mock DB (later replace with real API)
-    await fetch("api/incidents.json");
+    // Simulate incident creation (GitHub cannot truly write files)
+    const incidentId = Date.now();
 
-    // Then start Yeastar call
+    alert("Incident created\nID: " + incidentId);
+
+    // Redirect to Yeastar PBX call
     window.location.href =
     "YOUR_YEASTAR_CALL_LINK";
 
