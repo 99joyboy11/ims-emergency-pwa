@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Emergency IMS</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    background:#f0f0f0;
+    padding:40px;
+}
+
+button{
+    padding:20px;
+    font-size:20px;
+    background:red;
+    color:white;
+    border:none;
+    border-radius:50%;
+    width:120px;
+    height:120px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Emergency IMS</h1>
+
+<button id="callBtn">Call</button>
+
+<script>
+
+let callerLocation = null;
+
+// Get GPS
+navigator.geolocation.getCurrentPosition(pos=>{
+    callerLocation = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+    };
+
+    console.log("GPS:", callerLocation);
+
+}, err=>{
+    alert("GPS permission required");
+},{enableHighAccuracy:true});
+
+
+// Emergency call
+document.getElementById("callBtn").onclick = async function(){
+
+    if(!callerLocation){
+        alert("Location not ready");
+        return;
+    }
+
+    // Save to GitHub mock DB (later replace with real API)
+    await fetch("api/incidents.json");
+
+    // Then start Yeastar call
+    window.location.href =
+    "YOUR_YEASTAR_CALL_LINK";
+
+};
+
+</script>
+
+</body>
+</html>
