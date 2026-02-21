@@ -2,11 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>IMS Dispatcher Control Room</title>
+<title>IMS Dispatcher Softphone</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- SIP + Map Libraries -->
 <script src="https://unpkg.com/sip.js/dist/sip.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -46,12 +45,13 @@ font-size:18px;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="header">
-<h2>Dispatcher IMS Console</h2>
+<h2>Dispatcher Console</h2>
 <div id="status">Connecting to PBX...</div>
 
 <button onclick="answerCall()">Answer Call</button>
@@ -63,20 +63,22 @@ font-size:18px;
 
 <script>
 
-/********************************************
- CONFIGURATION ⭐ CHANGE THIS
-********************************************/
+/****************************************************
+ YEASTAR PBX CONFIG ⭐ CHANGE THIS
+****************************************************/
 
-const extension = "1001";
-const password = "YOUR_EXTENSION_PASSWORD";
-const pbxDomain = "YOUR_PBX_DOMAIN.yeastarcloud.com";
+const pbxDomain = "https://microbizone.sgycm.yeastarcloud.com";
+const extensionCallerID = "102";
+
+const registrationName = "zoyOlw23Hf";
+const registrationPassword = "blDoqkpQl2";
 
 const wsServer =
 `wss://${pbxDomain}:8089/ws`;
 
-/********************************************
- MAP INIT
-********************************************/
+/****************************************************
+ MAP
+****************************************************/
 
 const map = L.map("map")
 .setView([14.5995,120.9842],12);
@@ -87,24 +89,26 @@ L.tileLayer(
 
 let marker = null;
 
-/********************************************
+/****************************************************
  SIP WEBRTC REGISTRATION
-********************************************/
+****************************************************/
 
 let session = null;
 
 const userAgent = new SIP.UserAgent({
 
 uri: SIP.UserAgent.makeURI(
-`sip:${extension}@${pbxDomain}`
+`sip:${registrationName}@${pbxDomain}`
 ),
+
+displayName: extensionCallerID,
 
 transportOptions:{
 server: wsServer
 },
 
-authorizationUsername: extension,
-authorizationPassword: password,
+authorizationUsername: registrationName,
+authorizationPassword: registrationPassword,
 
 sessionDescriptionHandlerFactoryOptions:{
 constraints:{
@@ -115,22 +119,20 @@ video:false
 
 });
 
-/********************************************
+/****************************************************
  START REGISTRATION
-********************************************/
+****************************************************/
 
 userAgent.start().then(()=>{
 
 document.getElementById("status").innerText =
-"Registered to PBX ✅";
-
-console.log("PBX Registration Success");
+"Registered as Extension 102 ✅";
 
 });
 
-/********************************************
+/****************************************************
  INCOMING CALL HANDLER
-********************************************/
+****************************************************/
 
 userAgent.delegate = {
 
@@ -149,9 +151,9 @@ showCallerLocation();
 
 };
 
-/********************************************
- CALL CONTROLS
-********************************************/
+/****************************************************
+ CALL CONTROL
+****************************************************/
 
 function answerCall(){
 
@@ -175,10 +177,9 @@ session.terminate();
 
 }
 
-/********************************************
- SHOW CALLER LOCATION
- (From Citizen App Simulation)
-********************************************/
+/****************************************************
+ CALLER LOCATION FROM IMS SIMULATION
+****************************************************/
 
 function showCallerLocation(){
 
@@ -188,9 +189,7 @@ JSON.parse(localStorage.getItem("activeCall"));
 if(!call) return;
 
 if(marker){
-
 marker.setLatLng([call.lat, call.lng]);
-
 }else{
 
 marker = L.marker([
