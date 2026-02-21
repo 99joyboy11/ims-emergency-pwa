@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>IMS Dispatcher Softphone</title>
+<title>Emergency Dispatch Console</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -17,23 +17,27 @@ href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 body{
 margin:0;
 font-family:Arial;
-background:#0f0f0f;
+background:#0b0b0b;
 color:white;
-text-align:center;
 }
 
 .header{
 padding:20px;
 background:#222;
+text-align:center;
 }
 
 #map{
 height:500px;
-width:100%;
+}
+
+.console{
+padding:20px;
+text-align:center;
 }
 
 button{
-padding:12px 25px;
+padding:12px 30px;
 font-size:16px;
 margin:10px;
 cursor:pointer;
@@ -41,7 +45,7 @@ cursor:pointer;
 
 #status{
 color:#00ff00;
-font-size:18px;
+font-size:20px;
 }
 
 </style>
@@ -51,7 +55,7 @@ font-size:18px;
 <body>
 
 <div class="header">
-<h2>Dispatcher Console</h2>
+<h2>Emergency Dispatch Control Room</h2>
 <div id="status">Connecting to PBX...</div>
 
 <button onclick="answerCall()">Answer Call</button>
@@ -63,11 +67,13 @@ font-size:18px;
 
 <script>
 
-/****************************************************
- YEASTAR PBX CONFIG ⭐ CHANGE THIS
-****************************************************/
+/*********************************************
+ YEASTAR PBX CONFIG ⭐ CHANGE ONLY THESE
+*********************************************/
 
-const pbxDomain = "https://microbizone.sgycm.yeastarcloud.com";
+const pbxDomain =
+"microbizone.sgycm.yeastarcloud.com";
+
 const extensionCallerID = "102";
 
 const registrationName = "zoyOlw23Hf";
@@ -76,9 +82,9 @@ const registrationPassword = "blDoqkpQl2";
 const wsServer =
 `wss://${pbxDomain}:8089/ws`;
 
-/****************************************************
- MAP
-****************************************************/
+/*********************************************
+ MAP INIT
+*********************************************/
 
 const map = L.map("map")
 .setView([14.5995,120.9842],12);
@@ -89,9 +95,9 @@ L.tileLayer(
 
 let marker = null;
 
-/****************************************************
- SIP WEBRTC REGISTRATION
-****************************************************/
+/*********************************************
+ SIP WEBRTC CLIENT
+*********************************************/
 
 let session = null;
 
@@ -119,31 +125,29 @@ video:false
 
 });
 
-/****************************************************
- START REGISTRATION
-****************************************************/
+/*********************************************
+ REGISTER TO PBX
+*********************************************/
 
 userAgent.start().then(()=>{
 
 document.getElementById("status").innerText =
-"Registered as Extension 102 ✅";
+"Registered to PBX ✅";
 
 });
 
-/****************************************************
+/*********************************************
  INCOMING CALL HANDLER
-****************************************************/
+*********************************************/
 
 userAgent.delegate = {
 
 onInvite(invitation){
 
-console.log("Incoming Call");
-
 session = invitation;
 
 document.getElementById("status").innerText =
-"Incoming Call 🔔";
+"Incoming Emergency Call 🔔";
 
 showCallerLocation();
 
@@ -151,21 +155,15 @@ showCallerLocation();
 
 };
 
-/****************************************************
- CALL CONTROL
-****************************************************/
+/*********************************************
+ CALL CONTROLS
+*********************************************/
 
 function answerCall(){
 
-if(!session){
-alert("No incoming call");
-return;
-}
-
+if(session){
 session.accept();
-
-document.getElementById("status").innerText =
-"Call Connected 🎧";
+}
 
 }
 
@@ -177,9 +175,9 @@ session.terminate();
 
 }
 
-/****************************************************
- CALLER LOCATION FROM IMS SIMULATION
-****************************************************/
+/*********************************************
+ SHOW CALLER LOCATION
+*********************************************/
 
 function showCallerLocation(){
 
@@ -189,14 +187,16 @@ JSON.parse(localStorage.getItem("activeCall"));
 if(!call) return;
 
 if(marker){
+
 marker.setLatLng([call.lat, call.lng]);
+
 }else{
 
 marker = L.marker([
 call.lat,
 call.lng
 ]).addTo(map)
-.bindPopup("Caller Location");
+.bindPopup("Emergency Caller Location");
 
 map.setView([call.lat, call.lng],16);
 
