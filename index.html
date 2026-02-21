@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Emergency Citizen App</title>
+<title>Citizen Emergency</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -26,9 +26,9 @@ width:380px;
 height:780px;
 background:white;
 border-radius:40px;
-overflow:hidden;
 display:flex;
 flex-direction:column;
+overflow:hidden;
 }
 
 .header{
@@ -41,7 +41,6 @@ font-weight:bold;
 
 #map{
 flex:1;
-width:100%;
 }
 
 #callBtn{
@@ -54,6 +53,7 @@ cursor:pointer;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -78,7 +78,7 @@ Emergency Call
 
 let locationData = null;
 
-// Map Init
+// Map
 const map = L.map("map").setView([0,0],2);
 
 L.tileLayer(
@@ -112,20 +112,28 @@ locationData.lng
 document.getElementById("callBtn").onclick = function(){
 
 if(!locationData){
-alert("Waiting for GPS...");
+alert("Waiting for GPS");
 return;
 }
 
-// Save session
-localStorage.setItem("activeCall", JSON.stringify({
+// Create Call Session
+const sessionId = Date.now().toString();
+
+const callData = {
+sessionId,
 lat: locationData.lat,
 lng: locationData.lng,
 status:"calling"
-}));
+};
 
-// Replace with your PBX call link
+localStorage.setItem(
+"activeCall",
+JSON.stringify(callData)
+);
+
+// Replace with your PBX WebRTC Call Link
 window.location.href =
-"https://microbizone.sgycm.yeastarcloud.com/webtrunk/calllink?code=aXpWdkZDUG93UU1wdmxOY2RSOERORDdUdUZzRTFHQ0c=";
+"YOUR_YEASTAR_CALL_LINK";
 
 };
 
