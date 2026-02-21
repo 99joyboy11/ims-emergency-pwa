@@ -1,66 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Citizen Emergency</title>
+<meta charset="UTF-8">
+<title>Emergency Call</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
+
 body{
-    font-family: Arial;
-    text-align:center;
-    background:#f4f4f4;
-    padding:40px;
+    margin:0;
+    font-family:Arial;
+    background:#f0f0f0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
 
-button{
+.mobile-phone{
+    width:380px;
+    height:780px;
+    background:white;
+    border-radius:50px;
+    border:20px solid #222;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+.emergency-text{
+    text-align:center;
+    color:red;
+    font-size:28px;
+    padding-top:60px;
+    font-weight:bold;
+}
+
+#map{
+    flex:1;
+}
+
+.call-button{
+    width:120px;
+    height:120px;
     background:red;
-    color:white;
-    border:none;
-    padding:30px;
     border-radius:50%;
-    font-size:20px;
+    margin:20px auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
     cursor:pointer;
 }
+
+.call-button svg{
+    width:60px;
+    fill:white;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<h1>Emergency Call</h1>
+<div class="mobile-phone">
 
-<button id="emergencyBtn">CALL</button>
+<div class="emergency-text">
+Emergency Call
+</div>
+
+<div id="map"></div>
+
+<div class="call-button" id="callBtn">
+<svg viewBox="0 0 512 512">
+<path d="M391 351c-20 0-39-4-56-11-5-2-11-1-15 3l-49 37c-60-32-108-80-140-140l37-49c4-4 5-10 3-15-7-17-11-36-11-56 0-11-9-20-20-20H91c-11 0-20 9-20 20 0 159 129 288 288 288 11 0 20-9 20-20v-59c0-11-9-20-20-20z"/>
+</svg>
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-let locationData = null;
+let callerLocation = null;
 
-navigator.geolocation.getCurrentPosition(pos=>{
-    locationData = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-    };
+// Map init
+const map = L.map("map").setView([0,0],2);
+
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+).addTo(map);
+
+let marker = null;
+
+// GPS tracking (better than single capture)
+if(navigator.geolocation){
+
+navigator.geolocation.watchPosition(pos=>{
+
+callerLocation = {
+lat: pos.coords.latitude,
+lng: pos.coords.longitude
+};
+
+map.setView([callerLocation.lat, callerLocation.lng],16);
+
+if(marker){
+marker.setLatLng([callerLocation.lat, callerLocation.lng]);
+}else{
+marker = L.marker([
+callerLocation.lat,
+callerLocation.lng
+]).addTo(map)
+.bindPopup("Your Location")
+.openPopup();
+}
+
 });
 
-document.getElementById("emergencyBtn").onclick = async function(){
+}
 
-    if(!locationData){
-        alert("Waiting for GPS...");
-        return;
-    }
+// Call button
+document.getElementById("callBtn").onclick = function(){
 
-    // Simulate incident creation (GitHub cannot truly write files)
-    const incidentId = Date.now();
+if(!callerLocation){
+alert("Waiting for GPS...");
+return;
+}
 
-    alert("Incident created\nID: " + incidentId);
+const incident = {
+id: Date.now(),
+lat: callerLocation.lat,
+lng: callerLocation.lng,
+status: "calling"
+};
 
-    // Redirect to Yeastar PBX call
-    window.location.href =
-    "https://microbizone.sgycm.yeastarcloud.com/webtrunk/calllink?code=aXpWdkZDUG93UU1wdmxOY2RSOERORDdUdUZzRTFHQ0c=";
+// Save simulated IMS incident
+localStorage.setItem(
+"activeIncident",
+JSON.stringify(incident)
+);
+
+// Redirect to Yeastar PBX call
+window.location.href =
+"YOUR_YEASTAR_CALL_LINK";
 
 };
+
+// Register PWA service worker
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("service-worker.js");
+}
 
 </script>
 
