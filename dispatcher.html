@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dispatcher IMS</title>
+</head>
+
+<body>
+
+<h2>Dispatcher Dashboard</h2>
+
+<div id="list"></div>
+
+<script>
+
+async function loadIncidents(){
+
+    const res = await fetch("api/incidents.json");
+    const data = await res.json();
+
+    const container = document.getElementById("list");
+    container.innerHTML = "";
+
+    data.forEach(i=>{
+        container.innerHTML += `
+        <div style="border:1px solid #ccc;padding:10px;margin:10px">
+            <b>Location:</b> ${i.lat}, ${i.lng}
+            <br>
+            <b>Status:</b> ${i.status}
+        </div>
+        `;
+    });
+
+}
+
+setInterval(loadIncidents,3000);
+loadIncidents();
+
+</script>
+
+</body>
+</html>
