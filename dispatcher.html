@@ -3,13 +3,15 @@
 <head>
 <title>Dispatcher IMS</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 #map{
-    height:600px;
+height:600px;
 }
 </style>
+
 </head>
 
 <body>
@@ -22,49 +24,62 @@
 
 <script>
 
-let map = L.map("map").setView([14.5995,120.9842],12);
+const map = L.map("map").setView([14.5995,120.9842],12);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
-.addTo(map);
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+).addTo(map);
 
-let markers = {};
+let dispatchMarker = null;
 
-async function loadIncidents(){
+function loadIncident(){
 
-    // Mock database (GitHub JSON)
-    const res = await fetch("data/incidents.json");
-    const incidents = await res.json();
+const incident =
+JSON.parse(localStorage.getItem("activeIncident"));
 
-    incidents.forEach(i=>{
+if(!incident) return;
 
-        if(!markers[i.id]){
+if(!dispatchMarker){
 
-            let marker = L.marker([i.lat,i.lng]).addTo(map);
+dispatchMarker = L.marker([
+incident.lat,
+incident.lng
+]).addTo(map)
+.bindPopup(`
+<b>Incoming Emergency Call</b><br>
+Status: ${incident.status}<br>
 
-            marker.bindPopup(`
-                <b>Incident ${i.id}</b><br>
-                Status: ${i.status}<br>
-                <button onclick="answerCall()">
-                Answer Call
-                </button>
-            `);
+<button onclick="answerCall()">
+Answer Call
+</button>
+`);
 
-            markers[i.id] = marker;
-        }
+map.setView([incident.lat, incident.lng],16);
 
-    });
+}
 
 }
 
 function answerCall(){
 
-    window.location.href =
-    "YOUR_YEASTAR_CALL_LINK";
+let incident =
+JSON.parse(localStorage.getItem("activeIncident"));
+
+incident.status = "answered";
+
+localStorage.setItem(
+"activeIncident",
+JSON.stringify(incident)
+);
+
+alert("Call Answered");
+
+window.location.href =
+"YOUR_YEASTAR_CALL_LINK";
 
 }
 
-setInterval(loadIncidents,3000);
-loadIncidents();
+setInterval(loadIncident,2000);
 
 </script>
 
