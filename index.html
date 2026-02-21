@@ -6,7 +6,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="manifest" href="manifest.json">
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -20,66 +19,56 @@ display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-color:white;
 }
 
-.phone{
+.container{
 width:380px;
 height:780px;
-background:#fff;
-border-radius:50px;
-border:18px solid #222;
+background:white;
+border-radius:40px;
+overflow:hidden;
 display:flex;
 flex-direction:column;
-overflow:hidden;
 }
 
-.title{
+.header{
 text-align:center;
 color:red;
-font-size:28px;
-padding-top:50px;
+font-size:24px;
+padding:30px;
 font-weight:bold;
 }
 
 #map{
 flex:1;
+width:100%;
 }
 
-.callBtn{
-width:120px;
-height:120px;
+#callBtn{
 background:red;
-border-radius:50%;
-margin:20px auto;
-display:flex;
-justify-content:center;
-align-items:center;
+color:white;
+border:none;
+padding:25px;
+font-size:20px;
 cursor:pointer;
 }
 
-.callBtn svg{
-width:60px;
-fill:white;
-}
-
 </style>
-
 </head>
 
 <body>
 
-<div class="phone">
+<div class="container">
 
-<div class="title">Emergency Call</div>
+<div class="header">
+Emergency Call
+</div>
 
 <div id="map"></div>
 
-<div class="callBtn" id="callBtn">
-<svg viewBox="0 0 512 512">
-<path d="M391 351c-20 0-39-4-56-11-5-2-11-1-15 3l-49 37c-60-32-108-80-140-140l37-49c4-4 5-10 3-15-7-17-11-36-11-56 0-11-9-20-20-20H91c-11 0-20 9-20 20 0 159 129 288 288 288 11 0 20-9 20-20v-59c0-11-9-20-20-20z"/>
-</svg>
-</div>
+<button id="callBtn">
+📞 Call Dispatcher
+</button>
 
 </div>
 
@@ -88,6 +77,8 @@ fill:white;
 <script>
 
 let locationData = null;
+
+// Map Init
 const map = L.map("map").setView([0,0],2);
 
 L.tileLayer(
@@ -96,7 +87,7 @@ L.tileLayer(
 
 let marker = null;
 
-// GPS tracking
+// GPS Tracking
 navigator.geolocation.watchPosition(pos=>{
 
 locationData = {
@@ -104,23 +95,20 @@ lat: pos.coords.latitude,
 lng: pos.coords.longitude
 };
 
-map.setView([locationData.lat,locationData.lng],16);
+map.setView([locationData.lat, locationData.lng],16);
 
 if(marker){
-marker.setLatLng([locationData.lat,locationData.lng]);
+marker.setLatLng([locationData.lat, locationData.lng]);
 }else{
 marker = L.marker([
 locationData.lat,
 locationData.lng
-]).addTo(map)
-.bindPopup("Your Location")
-.openPopup();
+]).addTo(map);
 }
 
 });
 
-
-// CALL BUTTON
+// Call Button
 document.getElementById("callBtn").onclick = function(){
 
 if(!locationData){
@@ -128,17 +116,14 @@ alert("Waiting for GPS...");
 return;
 }
 
-// Create call session
-const sessionId = Date.now().toString();
-
+// Save session
 localStorage.setItem("activeCall", JSON.stringify({
-sessionId,
 lat: locationData.lat,
 lng: locationData.lng,
 status:"calling"
 }));
 
-// Replace with your Yeastar WebRTC call link
+// Replace with your PBX call link
 window.location.href =
 "https://microbizone.sgycm.yeastarcloud.com/webtrunk/calllink?code=aXpWdkZDUG93UU1wdmxOY2RSOERORDdUdUZzRTFHQ0c=";
 
