@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dispatcher IMS</title>
+<title>Dispatcher Control Room</title>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -24,7 +24,8 @@ height:600px;
 
 <script>
 
-const map = L.map("map").setView([14.5995,120.9842],12);
+const map = L.map("map")
+.setView([14.5995,120.9842],12);
 
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -32,29 +33,28 @@ L.tileLayer(
 
 let dispatchMarker = null;
 
-function loadIncident(){
+function loadCall(){
 
-const incident =
-JSON.parse(localStorage.getItem("activeIncident"));
+const call =
+JSON.parse(localStorage.getItem("activeCall"));
 
-if(!incident) return;
+if(!call) return;
 
 if(!dispatchMarker){
 
-dispatchMarker = L.marker([
-incident.lat,
-incident.lng
-]).addTo(map)
+dispatchMarker = L.marker([call.lat,call.lng])
+.addTo(map)
 .bindPopup(`
 <b>Incoming Emergency Call</b><br>
-Status: ${incident.status}<br>
+
+Status: ${call.status}<br>
 
 <button onclick="answerCall()">
 Answer Call
 </button>
 `);
 
-map.setView([incident.lat, incident.lng],16);
+map.setView([call.lat,call.lng],16);
 
 }
 
@@ -62,14 +62,14 @@ map.setView([incident.lat, incident.lng],16);
 
 function answerCall(){
 
-let incident =
-JSON.parse(localStorage.getItem("activeIncident"));
+let call =
+JSON.parse(localStorage.getItem("activeCall"));
 
-incident.status = "answered";
+call.status = "answered";
 
 localStorage.setItem(
-"activeIncident",
-JSON.stringify(incident)
+"activeCall",
+JSON.stringify(call)
 );
 
 alert("Call Answered");
@@ -79,7 +79,7 @@ window.location.href =
 
 }
 
-setInterval(loadIncident,2000);
+setInterval(loadCall,2000);
 
 </script>
 
