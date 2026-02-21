@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>IMS Dispatcher Console</title>
+
+<script src="https://unpkg.com/sip.js/dist/sip.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+padding:40px;
+}
+
+button{
+padding:15px 30px;
+font-size:18px;
+margin:10px;
+cursor:pointer;
+}
+
+#status{
+margin:20px;
+font-size:18px;
+color:#0f0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Dispatcher IMS Softphone</h2>
+
+<div id="status">Not Registered</div>
+
+<button onclick="answerCall()">Answer Call</button>
+<button onclick="hangupCall()">Hangup</button>
+
+<script>
+
+/////////////////////////////////////////////////////
+// CONFIGURATION (YOU MUST CHANGE THIS ⭐⭐⭐⭐⭐)
+/////////////////////////////////////////////////////
+
+const extension = "1001";
+const password = "EXTENSION_PASSWORD";
+
+const pbxDomain = "YOUR_PBX_DOMAIN.yeastarcloud.com";
+
+const wsServer =
+`wss://${pbxDomain}:8089/ws`;
+
+/////////////////////////////////////////////////////
+
+let session = null;
+
+const userAgent = new SIP.UserAgent({
+
+uri: SIP.UserAgent.makeURI(
+`sip:${extension}@${pbxDomain}`
+),
+
+transportOptions:{
+server: wsServer
+},
+
+authorizationUsername: extension,
+authorizationPassword: password,
+
+sessionDescriptionHandlerFactoryOptions:{
+constraints:{
+audio:true,
+video:false
+}
+}
+
+});
+
+/////////////////////////////////////////////////////
+// REGISTER TO PBX
+/////////////////////////////////////////////////////
+
+userAgent.start().then(()=>{
+
+document.getElementById("status").innerText =
+"Registered to PBX ✅";
+
+console.log("Dispatcher registered");
+
+});
+
+/////////////////////////////////////////////////////
+// INCOMING CALL HANDLER
+/////////////////////////////////////////////////////
+
+userAgent.delegate = {
+
+onInvite(invitation){
+
+document.getElementById("status").innerText =
+"Incoming Call 🔔";
+
+session = invitation;
+
+console.log("Incoming call detected");
+
+}
+
+};
+
+/////////////////////////////////////////////////////
+// CALL CONTROL
+/////////////////////////////////////////////////////
+
+function answerCall(){
+
+if(!session){
+alert("No incoming call");
+return;
+}
+
+session.accept();
+
+document.getElementById("status").innerText =
+"Call Connected 🎧";
+
+}
+
+function hangupCall(){
+
+if(session){
+session.terminate();
+}
+
+}
+
+</script>
+
+</body>
+</html>
