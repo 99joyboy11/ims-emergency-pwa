@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dispatcher Control Room</title>
+<title>Dispatcher</title>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -31,23 +31,21 @@ L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 ).addTo(map);
 
-let dispatchMarker = null;
+let marker = null;
 
-function loadCall(){
+function checkCall(){
 
 const call =
 JSON.parse(localStorage.getItem("activeCall"));
 
 if(!call) return;
 
-if(!dispatchMarker){
+if(!marker){
 
-dispatchMarker = L.marker([call.lat,call.lng])
+marker = L.marker([call.lat,call.lng])
 .addTo(map)
 .bindPopup(`
-<b>Incoming Emergency Call</b><br>
-
-Status: ${call.status}<br>
+<b>Incoming Call</b><br>
 
 <button onclick="answerCall()">
 Answer Call
@@ -61,25 +59,10 @@ map.setView([call.lat,call.lng],16);
 }
 
 function answerCall(){
-
-let call =
-JSON.parse(localStorage.getItem("activeCall"));
-
-call.status = "answered";
-
-localStorage.setItem(
-"activeCall",
-JSON.stringify(call)
-);
-
 alert("Call Answered");
-
-window.location.href =
-"YOUR_YEASTAR_CALL_LINK";
-
 }
 
-setInterval(loadCall,2000);
+setInterval(checkCall,2000);
 
 </script>
 
