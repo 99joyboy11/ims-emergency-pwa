@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Emergency Call</title>
+<title>Emergency Citizen App</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,53 +13,54 @@ href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <style>
 
 body{
-    margin:0;
-    font-family:Arial;
-    background:#f0f0f0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+margin:0;
+font-family:Arial;
+background:#111;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+color:white;
 }
 
-.mobile-phone{
-    width:380px;
-    height:780px;
-    background:white;
-    border-radius:50px;
-    border:20px solid #222;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+.phone{
+width:380px;
+height:780px;
+background:#fff;
+border-radius:50px;
+border:18px solid #222;
+display:flex;
+flex-direction:column;
+overflow:hidden;
 }
 
-.emergency-text{
-    text-align:center;
-    color:red;
-    font-size:28px;
-    padding-top:60px;
-    font-weight:bold;
+.title{
+text-align:center;
+color:red;
+font-size:28px;
+padding-top:50px;
+font-weight:bold;
 }
 
 #map{
-    flex:1;
+flex:1;
 }
 
-.call-button{
-    width:120px;
-    height:120px;
-    background:red;
-    border-radius:50%;
-    margin:20px auto;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    cursor:pointer;
+.callBtn{
+width:120px;
+height:120px;
+background:red;
+border-radius:50%;
+margin:20px auto;
+display:flex;
+justify-content:center;
+align-items:center;
+cursor:pointer;
 }
 
-.call-button svg{
-    width:60px;
-    fill:white;
+.callBtn svg{
+width:60px;
+fill:white;
 }
 
 </style>
@@ -68,15 +69,13 @@ body{
 
 <body>
 
-<div class="mobile-phone">
+<div class="phone">
 
-<div class="emergency-text">
-Emergency Call
-</div>
+<div class="title">Emergency Call</div>
 
 <div id="map"></div>
 
-<div class="call-button" id="callBtn">
+<div class="callBtn" id="callBtn">
 <svg viewBox="0 0 512 512">
 <path d="M391 351c-20 0-39-4-56-11-5-2-11-1-15 3l-49 37c-60-32-108-80-140-140l37-49c4-4 5-10 3-15-7-17-11-36-11-56 0-11-9-20-20-20H91c-11 0-20 9-20 20 0 159 129 288 288 288 11 0 20-9 20-20v-59c0-11-9-20-20-20z"/>
 </svg>
@@ -88,9 +87,7 @@ Emergency Call
 
 <script>
 
-let callerLocation = null;
-
-// Map init
+let locationData = null;
 const map = L.map("map").setView([0,0],2);
 
 L.tileLayer(
@@ -99,24 +96,22 @@ L.tileLayer(
 
 let marker = null;
 
-// GPS tracking (better than single capture)
-if(navigator.geolocation){
-
+// GPS tracking
 navigator.geolocation.watchPosition(pos=>{
 
-callerLocation = {
+locationData = {
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 };
 
-map.setView([callerLocation.lat, callerLocation.lng],16);
+map.setView([locationData.lat,locationData.lng],16);
 
 if(marker){
-marker.setLatLng([callerLocation.lat, callerLocation.lng]);
+marker.setLatLng([locationData.lat,locationData.lng]);
 }else{
 marker = L.marker([
-callerLocation.lat,
-callerLocation.lng
+locationData.lat,
+locationData.lng
 ]).addTo(map)
 .bindPopup("Your Location")
 .openPopup();
@@ -124,39 +119,30 @@ callerLocation.lng
 
 });
 
-}
 
-// Call button
+// CALL BUTTON
 document.getElementById("callBtn").onclick = function(){
 
-if(!callerLocation){
+if(!locationData){
 alert("Waiting for GPS...");
 return;
 }
 
-const incident = {
-id: Date.now(),
-lat: callerLocation.lat,
-lng: callerLocation.lng,
-status: "calling"
-};
+// Create call session
+const sessionId = Date.now().toString();
 
-// Save simulated IMS incident
-localStorage.setItem(
-"activeIncident",
-JSON.stringify(incident)
-);
+localStorage.setItem("activeCall", JSON.stringify({
+sessionId,
+lat: locationData.lat,
+lng: locationData.lng,
+status:"calling"
+}));
 
-// Redirect to Yeastar PBX call
+// Replace with your Yeastar WebRTC call link
 window.location.href =
-"https://microbizone.sgycm.yeastarcloud.com/webtrunk/calllink?code=aXpWdkZDUG93UU1wdmxOY2RSOERORDdUdUZzRTFHQ0c=";
+"YOUR_YEASTAR_CALL_LINK";
 
 };
-
-// Register PWA service worker
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("service-worker.js");
-}
 
 </script>
 
